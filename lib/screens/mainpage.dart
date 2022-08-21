@@ -6,6 +6,9 @@ import 'package:githubviewer/horizontal_line.dart';
 import 'package:githubviewer/screens/logic/userprofile_cubit.dart';
 import 'package:githubviewer/screens/model/userprofile_entity.dart';
 
+import 'logic/userprofile_repository.dart';
+import 'model/userrepos_entity.dart';
+
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
 
@@ -18,11 +21,13 @@ class _MainPageState extends State<MainPage> {
   Icon actionIcon = new Icon(Icons.search);
   late TextEditingController searchController;
   String previousSearch = "";
+  List<UserreposEntity> list = [];
 
   @override
   void initState() {
     super.initState();
     searchController = TextEditingController();
+    context.read<UserprofileCubit>().fetchUserProfile("ronakparmar533");
   }
 
   @override
@@ -82,6 +87,7 @@ class _MainPageState extends State<MainPage> {
           if (state is UserProfileLoading) {
             return Center(child: CircularProgressIndicator());
           } else if (state is UserProfileLoaded) {
+            reposListApiCall();
             return _userProfileView(state.data);
           } else if (state is UserProfileError) {
             return Text(state.error);
@@ -97,10 +103,13 @@ class _MainPageState extends State<MainPage> {
                     height: 300,
                     child: SvgPicture.asset(
                       "svg/search.svg",
-                       semanticsLabel: "waiting for search",
+                      semanticsLabel: "waiting for search",
                     ),
                   ),
-                  Text("Waiting for search!" , style: TextStyle(fontSize: 22.0,  color: Colors.white),)
+                  Text(
+                    "Waiting for search!",
+                    style: TextStyle(fontSize: 22.0, color: Colors.white),
+                  )
                 ],
               ),
             ),
@@ -148,13 +157,15 @@ class _MainPageState extends State<MainPage> {
               ),
             ),
             HorizontalDivider(),
+
+            showReposList(),
           ],
         ),
       ),
     );
   }
 
-  Column _topProfileInfo(String userData, String title) {
+  Widget _topProfileInfo(String userData, String title) {
     return Column(
       children: [
         Text(
@@ -164,5 +175,36 @@ class _MainPageState extends State<MainPage> {
         Text(title, style: TextStyle(color: Colors.white, fontSize: 18.0)),
       ],
     );
+  }
+
+  Widget showReposList() {
+    return ListView.separated(
+        shrinkWrap: true,
+        itemBuilder: (_, index) {
+          return ListTile(
+            title: Text(
+              list[index].name ?? "",
+              style: TextStyle(color: Colors.white, fontSize: 24.0),
+            ),
+          );
+        },
+        separatorBuilder: (_, index) {
+          return Divider();
+        },
+        itemCount: list.length);
+  }
+
+  void reposListApiCall() async {
+    await UserProfileRepository().fetchRepos("ronakparmar533").then((value) {
+      if (value != null) {
+        for (var i in value) {
+          list.add(i);
+        }
+      }
+    });
+
+    setState(() {
+      list;
+    });
   }
 }

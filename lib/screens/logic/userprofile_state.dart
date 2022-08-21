@@ -13,7 +13,15 @@ class UserProfileLoaded extends UserprofileState {
   UserProfileLoaded(this.data);
 }
 
+class UserReposSuccess extends UserprofileState {
+  // List<UserreposEntity> data;
+  UserreposEntity? data;
+
+  UserReposSuccess(this.data);
+}
+
 class UserProfileError extends UserprofileState {
   String error;
+
   UserProfileError(this.error);
 }
